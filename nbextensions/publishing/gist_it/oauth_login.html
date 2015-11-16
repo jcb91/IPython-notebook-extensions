@@ -1,0 +1,12 @@
+<script>
+function urlParam(param_name) {
+	var results = new RegExp('[\?&]' + param_name + '=([^&#]*)').exec(window.location.href);
+	return results[1] || 0;
+}
+var data = {
+	code: urlParam(code),
+    state: urlParam(state)
+};
+window.opener.postMessage(data, window.location);
+window.close();
+</script>

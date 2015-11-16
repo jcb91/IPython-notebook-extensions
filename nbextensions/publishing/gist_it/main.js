@@ -43,6 +43,7 @@ define([
     var params = {
         gist_it_default_to_public: false,
         gist_it_personal_access_token: '',
+        gist_it_oauth_url: ''
     };
 
     // create config object to load parameters
@@ -83,8 +84,55 @@ define([
         );
     }
 
+    function make_state (len) {
+        len = len || 20;
+        var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+        var posslen = possible.length;
+        var state = "";
+        for (var i=0; i < len; i++)
+            state += possible.charAt(Math.random() * posslen);
+        return state;
+    }
+
+    var oauth_state = '';
+    var oauth_token = '';
+
+    function oauth_message_callback (event) {
+        if (event.data.state !== oauth_state) return;
+        $.get({
+            url: params.gist_it_oauth_url,
+            data: JSON.stringify({
+                code: event.data.code,
+                state: event.data.state
+            }),
+            success: function (access_token) { oauth_token = access_token; }
+        });
+        window.removeEventListener('message', oauth_message_callback, false);
+    }
+
+    function oauth_get_token () {
+        if (params.gist_it_client_id === '') return;
+        if (params.gist_it_oauth_url === '') return;
+
+        oauth_state = make_state();
+        var redirect_uri = require.toUrl('./oauth_login.html');
+
+        // add listener for message passed from window opened by the github oauth page's redirect
+        window.addEventListener('message', oauth_message_callback, false);
+        // open the github oauth URL
+        window.open('https://github.com/login/oauth/authorize' +
+            '?client_id=' + encodeURIComponent(params.gist_it_client_id) +
+            '&state=' + encodeURIComponent(oauth_state) +
+            '&redirect_uri=' + encodeURIComponent(redirect_uri) +
+            '&scope=gist'
+        );
+    }
+
     var add_auth_token = function add_auth_token (xhr) {
         var token = '';
+        if (oauth_token !== '') {
+            token = oauth_token;
+        }
         if (params.gist_it_personal_access_token !== '') {
             token = params.gist_it_personal_access_token;
         }
@@ -430,6 +478,9 @@ define([
 
     var make_gist = function make_gist (complete_callback) {
         ensure_default_metadata();
+
+        // get oauth token if possible
+        oauth_get_token();
 
         var data = $.extend(
             true, // deep-copy
