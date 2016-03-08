@@ -1,0 +1,11 @@
+Type: IPython Notebook Extension
+Compatibility: 4.x
+Name: Bootstrapify Tables
+Main: main.js
+Description: "Make use of bootstrap css for tables, by adding the 'table' css class on various event callbacks"
+Parameters:
+- name: bootstrapify_tables_timeout
+  description: "milliseconds to wait between markdown event firing, and applying css classes"
+  input_type: number
+  min: 0
+  default: 100
