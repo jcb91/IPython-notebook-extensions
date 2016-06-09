@@ -10,8 +10,8 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
 
 // ...........Parameters configuration......................
  // define default values for config parameters if they were not present in general settings (notebook.json)
-    var cfg={'toc_threshold':6, 
-             'toc_number_sections':true, 
+    var cfg={'toc_threshold':6,
+             'toc_number_sections':true,
              'toc_cell':false,
              'toc_window_display':false}
     var threshold = cfg['toc_threshold']
@@ -54,7 +54,7 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
 }
 //.....................global variables....
 
-    var rendering_toc_cell = false; 
+    var rendering_toc_cell = false;
     var config_loaded = false;
     var extension_initialized=false;
 
@@ -83,20 +83,6 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
     return a;
   };
 
-
-  var make_link_originalid = function (h, num_lbl) {
-    var a = $("<a/>");
-    a.attr("href", '#' + h.attr('saveid'));
-    // get the text *excluding* the link text, whatever it may be
-    var hclone = h.clone();
-    if( num_lbl ){ hclone.prepend(num_lbl); }
-    hclone.children().last().remove(); // remove the last child (that is the automatic anchor)
-    hclone.find("a[name]").remove();   //remove all named anchors
-    a.html(hclone.html());
-    a.on('click',function(){setTimeout(function(){ $.ajax()}, 100) }) //workaround for  https://github.com/jupyter/notebook/issues/699
-    return a;
-}
-
   var ol_depth = function (element) {
     // get depth of nested ol
     var d = 0;
@@ -106,7 +92,7 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
     }
     return d;
   };
-  
+
   var create_toc_div = function () {
     var toc_wrapper = $('<div id="toc-wrapper"/>')
     .append(
@@ -159,7 +145,7 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
         .text("n")
         .attr('title', 'Number text sections')
         .click( function(){
-          number_sections=!(number_sections); 
+          number_sections=!(number_sections);
           IPython.notebook.metadata.toc['toc_number_sections']=number_sections;
           IPython.notebook.set_dirty();
           table_of_contents();
@@ -175,7 +161,7 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
         .html("t")
         .attr('title', 'Add a toc section in Notebook')
         .click( function(){
-          toc_cell=!(toc_cell); 
+          toc_cell=!(toc_cell);
           IPython.notebook.metadata.toc['toc_cell']=toc_cell;
           IPython.notebook.set_dirty();
           table_of_contents();
@@ -196,9 +182,9 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
           stop :  function (event,ui){ // on save, store toc position
         var oldHeight = IPython.notebook.metadata['toc_position']['height'];
 		IPython.notebook.metadata['toc_position']={
-		'left':$('#toc-wrapper').css('left'), 
+		'left':$('#toc-wrapper').css('left'),
 		'top':$('#toc-wrapper').css('top'),
-        'width':$('#toc-wrapper').css('width'),  
+        'width':$('#toc-wrapper').css('width'),
 		'right':$('#toc-wrapper').css('right')};
         if (!$('#toc-wrapper').hasClass('closed')){
             IPython.notebook.metadata['toc_position']['height']=$('#toc-wrapper').css('height');
@@ -208,7 +194,7 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
         }
 		IPython.notebook.set_dirty();
 		},
-    }); 
+    });
 
     $('#toc-wrapper').resizable({
           start : function(event, ui) {
@@ -216,27 +202,27 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
           },
           stop :  function (event,ui){ // on save, store toc position
         IPython.notebook.metadata['toc_position']={
-        'left':$('#toc-wrapper').css('left'), 
+        'left':$('#toc-wrapper').css('left'),
         'top':$('#toc-wrapper').css('top'),
-        'width':$('#toc-wrapper').css('width'),  
-        'height':$('#toc-wrapper').css('height'), 
+        'width':$('#toc-wrapper').css('width'),
+        'height':$('#toc-wrapper').css('height'),
 		'right':$('#toc-wrapper').css('right')};
         $('#toc').css('height', $('#toc-wrapper').height()-30)
 		IPython.notebook.set_dirty();
 		},
-    }); 
- 
+    });
+
 
     // restore toc position at load
     if (IPython.notebook.metadata['toc_position'] !== undefined){
-          $('#toc-wrapper').css(IPython.notebook.metadata['toc_position']);          
+          $('#toc-wrapper').css(IPython.notebook.metadata['toc_position']);
 }
     // Ensure position is fixed
         $('#toc-wrapper').css('position', 'fixed');
 
-    // Restore toc display 
+    // Restore toc display
     if (IPython.notebook.metadata.toc !== undefined) {
-        if (IPython.notebook.metadata.toc['toc_section_display']!==undefined)  {  
+        if (IPython.notebook.metadata.toc['toc_section_display']!==undefined)  {
             $('#toc').css('display',IPython.notebook.metadata.toc['toc_section_display'])
             $('#toc').css('height', $('#toc-wrapper').height()-30)
             if (IPython.notebook.metadata.toc['toc_section_display']=='none'){
@@ -244,24 +230,24 @@ define(["require", "jquery", "base/js/namespace",  'services/config',
               $('#toc-wrapper').css({height: 40});
               $('#toc-wrapper .hide-btn')
               .text('[+]')
-              .attr('title', 'Show ToC');         
+              .attr('title', 'Show ToC');
             }
         }
-        if (IPython.notebook.metadata.toc['toc_window_display']!==undefined)    { 
-            console.log("******Restoring toc display"); 
+        if (IPython.notebook.metadata.toc['toc_window_display']!==undefined)    {
+            console.log("******Restoring toc display");
             $('#toc-wrapper').css('display',IPython.notebook.metadata.toc['toc_window_display'] ? 'block' : 'none');
             //$('#toc').css('overflow','auto')
         }
     }
-    
+
     // if toc-wrapper is undefined (first run(?), then hide it)
     if ($('#toc-wrapper').css('display')==undefined) $('#toc-wrapper').css('display',"none") //block
   };
 
 //  var table_of_contents = function (threshold) { //small bug because being called on an event, the passed threshold was actually an event
-//                                                   now threshold is a global variable 
+//                                                   now threshold is a global variable
 var table_of_contents = function () {
-    if(rendering_toc_cell) { // if toc_cell is rendering, do not call  table_of_contents,                             
+    if(rendering_toc_cell) { // if toc_cell is rendering, do not call  table_of_contents,
         rendering_toc_cell=false;  // otherwise it will loop
         return}
 
@@ -274,49 +260,49 @@ var table_of_contents = function () {
     var ul = $("<ul/>").addClass("toc-item");
     $("#toc").empty().append(ul);
 
-   // TOC CELL -- if toc_cell=true, add and update a toc cell in the notebook. 
+   // TOC CELL -- if toc_cell=true, add and update a toc cell in the notebook.
    //             This cell, initially at the very beginning, can be moved.
    //             Its contents are automatically updated.
    //             Optionnaly, the sections in the toc can be numbered.
-               
+
    var cell_toc = undefined;
    function look_for_cell_toc(callb){ // look for a possible toc cell
        var cells = IPython.notebook.get_cells();
        var lcells=cells.length;
        for (var i = 0; i < lcells; i++) {
           if (cells[i].metadata.toc=="true") {
-                cell_toc=cells[i]; 
-                toc_index=i; 
-                //console.log("Found a cell_toc",i); 
-                break;} 
+                cell_toc=cells[i];
+                toc_index=i;
+                //console.log("Found a cell_toc",i);
+                break;}
                 }
     callb && callb(i);
     }
     // then process the toc cell:
-    function proces_cell_toc(i){ 
-        //if toc_cell=true, we want a cell_toc. 
+    function proces_cell_toc(i){
+        //if toc_cell=true, we want a cell_toc.
         //  If it does not exist, create it at the beginning of the notebook
-        //if toc_cell=false, we do not want a cell-toc. 
+        //if toc_cell=false, we do not want a cell-toc.
         //  If one exists, delete it
         if(toc_cell) {
                if (cell_toc == undefined) {
                     rendering_toc_cell = true;
                     //console.log("*********  Toc undefined - Inserting toc_cell");
-                    cell_toc = IPython.notebook.select(0).insert_cell_above("markdown"); 
+                    cell_toc = IPython.notebook.select(0).insert_cell_above("markdown");
                     cell_toc.metadata.toc="true";
                }
         }
         else{
            if (cell_toc !== undefined) IPython.notebook.delete_cell(toc_index);
-           rendering_toc_cell=false; 
+           rendering_toc_cell=false;
          }
     }
     look_for_cell_toc(proces_cell_toc);
     //proces_cell_toc();
-    
+
     var cell_toc_text = "# Table of Contents\n <p>";
     var depth = 1; //var depth = ol_depth(ol);
-    var li= ul;//yes, initialize li with ul! 
+    var li= ul;//yes, initialize li with ul!
     var all_headers= $("#notebook").find(":header");
     var min_lvl=1, lbl_ary= [];
     for(; min_lvl <= 6; min_lvl++){ if(all_headers.is('h'+min_lvl)){break;} }
@@ -349,21 +335,21 @@ var table_of_contents = function () {
           ul= ul.parent();
           while(!ul.is('ul')){ ul= ul.parent(); }
       }
-      // Change link id -- append current num_str so as to get a kind of unique anchor 
+      // Change link id -- append current num_str so as to get a kind of unique anchor
       // A drawback of this approach is that anchors are subject to change and thus external links can fail if toc changes
-      // Anyway, one can always add a <a name="myanchor"></a> in the heading and refer to that anchor, eg [link](#myanchor) 
-      // This anchor is automatically removed when building toc links. The original id is also preserved and an anchor is created 
-      // using it. 
+      // Anyway, one can always add a <a name="myanchor"></a> in the heading and refer to that anchor, eg [link](#myanchor)
+      // This anchor is automatically removed when building toc links. The original id is also preserved and an anchor is created
+      // using it.
       // Finally a heading line can be linked to by [link](#initialID), or [link](#initialID-num_str) or [link](#myanchor)
         if (!$(h).attr("saveid")) {$(h).attr("saveid", h.id)} //save original id
         h.id=$(h).attr("saveid")+'-'+num_str;  // change the id to be "unique" and toc links to it
         var saveid = $(h).attr('saveid')
         //escape special chars: http://stackoverflow.com/questions/3115150/
-        var saveid_search=saveid.replace(/[-[\]{}():\/!;&@=$£%§<>%"'*+?.,~\\^$|#\s]/g, "\\$&"); 
+        var saveid_search=saveid.replace(/[-[\]{}():\/!;&@=$£%§<>%"'*+?.,~\\^$|#\s]/g, "\\$&");
         if ($(h).find("a[name="+saveid_search+"]").length==0){  //add an anchor with original id (if it doesnt't already exists)
              $(h).prepend($("<a/>").attr("name",saveid)); }
 
-  
+
       // Create toc entry, append <li> tag to the current <ol>. Prepend numbered-labels to headings.
       li=$("<li/>").append( make_link( $(h), num_lbl));
       ul.append(li);
@@ -373,22 +359,22 @@ var table_of_contents = function () {
       if(toc_cell) {
           var tabs = function(level) {
                 var tabs = '';
-                for (var j = 0; j < level -1; j++) { 
+                for (var j = 0; j < level -1; j++) {
                   tabs += "\t";}
                   return tabs}
 
-          var leves='<div class="lev'+level.toString()+'">'
-          var lnk=make_link_originalid($(h))
+          var leves='<div class="lev'+level.toString()+' static-toc-item">'
+          var lnk=make_link($(h))
           cell_toc_text += leves + $('<p>').append(lnk).html()+'</div>';
           //workaround for https://github.com/jupyter/notebook/issues/699 as suggested by @jhamrick
-          lnk.on('click',function(){setTimeout(function(){console.log('clicked'); $.ajax()}, 100) }) 
+          lnk.on('click',function(){setTimeout(function(){console.log('clicked'); $.ajax()}, 100) })
       }
     });
 
     if(toc_cell) {
          rendering_toc_cell = true;
          //IPython.notebook.to_markdown(toc_index);
-         cell_toc.set_text(cell_toc_text); 
+         cell_toc.set_text(cell_toc_text);
          cell_toc.render();
     };
 
@@ -398,7 +384,7 @@ var table_of_contents = function () {
 
     $(window).trigger('resize');
 };
-    
+
   var toggle_toc = function () {
     // toggle draw (first because of first-click behavior)
     $("#toc-wrapper").toggle({'complete':function(){
@@ -410,7 +396,7 @@ var table_of_contents = function () {
     rendering_toc_cell = false;
     table_of_contents();
   };
-  
+
   var toc_button = function () {
     if (!IPython.toolbar) {
       $([IPython.events]).on("app_initialized.NotebookApp", toc_button);
@@ -427,7 +413,7 @@ var table_of_contents = function () {
       ]);
     }
   };
-  
+
   var load_css = function () {
     var link = document.createElement("link");
     link.type = "text/css";
@@ -435,16 +421,16 @@ var table_of_contents = function () {
     link.href = require.toUrl("./main.css");
     document.getElementsByTagName("head")[0].appendChild(link);
   };
-  
+
   var load_ipython_extension = function () {
-    load_css(); 
-    toc_button(); 
+    load_css();
+    toc_button();
     // render toc on load
     $([IPython.events]).on("notebook_loaded.Notebook", function(){ // curiously, the event is not always fired or detected
-                                                       // thus I rely on kernel_ready.Kernel to read the initial config 
+                                                       // thus I rely on kernel_ready.Kernel to read the initial config
                                                        // and render the first  table of contents
-            read_config(); 
-        table_of_contents(); 
+            read_config();
+        table_of_contents();
         // render toc for each markdown cell modification
         //$([IPython.events]).on("rendered.MarkdownCell", table_of_contents);
         $([IPython.events]).on("rendered.MarkdownCell", function(){table_of_contents();});
@@ -454,8 +440,8 @@ var table_of_contents = function () {
 
     $([IPython.events]).on("kernel_ready.Kernel", function(){
         if (!extension_initialized){
-            read_config(); 
-            table_of_contents(); 
+            read_config();
+            table_of_contents();
             // render toc for each markdown cell modification
             $([IPython.events]).on("rendered.MarkdownCell", function(){table_of_contents();});
             console.log("toc2 initialized (via kernel_ready)")
