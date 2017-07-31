@@ -8,12 +8,14 @@
 
     var IPython;
     var liveNotebook = false;
+
     if (require.specified('base/js/namespace')) {
         require(['base/js/namespace'], function(Jupyter_mod) {
             liveNotebook = true;
             IPython = Jupyter_mod;
         });
     }
+
 
 function incr_lbl(ary, h_idx) { //increment heading label  w/ h_idx (zero based)
     ary[h_idx]++;
@@ -678,3 +680,12 @@ var table_of_contents = function (cfg,st) {
         toggle_toc: toggle_toc,
     };
 });
+
+if (!liveNotebook) {
+    // export main function for backwards compatibility
+    function table_of_contents(cfg, st) {
+        return require(['nbextensions/toc2/toc2'], function(toc2) {
+            return toc2.table_of_contents(cfg, st);
+        });
+    }
+}
