@@ -46,15 +46,9 @@ $( document ).ready(function(){
             st.toc_index=0;
 
             // fire the main function with these parameters
-
-            try { // new version of toc2 with amd module
-                  require(['nbextensions/toc2/toc2'], function (toc2) {
-                        toc2.table_of_contents(cfg, st);
-                        });
-            }
-            catch(e) { // for backward compatibility
-               table_of_contents(cfg, st);   
-            }
+            require(['nbextensions/toc2/toc2'], function (toc2) {
+                toc2.table_of_contents(cfg, st);
+            });
     });
 </script>
 

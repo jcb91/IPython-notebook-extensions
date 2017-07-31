@@ -45,7 +45,8 @@ define([
                 'sidebar_border': '#EEEEEE',
                 'navigate_text': '#333333',
                 'navigate_num': '#000000',
-              }
+              },
+              skip_h1_title: false,
 }
 
 //.....................global variables....
