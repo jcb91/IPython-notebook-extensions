@@ -77,13 +77,14 @@ class EmbedHTMLExporter(HTMLExporter):
                 self.attachments += cell['attachments']
 
         # Parse HTML and replace <img> tags with the embedded data
-        parser = et.HTMLParser()
-        root = et.fromstring(output, parser=parser)
+        parser = et.HTMLParser(encoding='utf-8')
+        root = et.fromstring(output.encode('utf-8'), parser=parser)
         nodes = root.findall(".//img")
         for n in nodes:
             self.replfunc(n)
 
         # Convert back to HTML
-        embedded_output = et.tostring(root, method="html")
+        # use getroottree to add doctype tag
+        embedded_output = et.tostring(root.getroottree(), encoding='utf-8', method='html').decode('utf-8')
 
         return embedded_output, resources

@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """Tests for custom exporters."""
 
+import difflib
 import io
+import logging
 import os
 from functools import wraps
 
+import nose.tools as nt
 from nbconvert.tests.base import TestsBase
 from nbformat import v4, write
 
@@ -35,6 +38,8 @@ class TestNbConvertExporters(TestsBase):
         nb_dst_filename = nb_basename + '.html'
         assert os.path.isfile(nb_dst_filename)
         statinfo = os.stat(nb_dst_filename)
+        with io.open(nb_dst_filename, 'r', encoding='utf-8') as f:
+            txt_pre = f.read()
 
         os.remove(nb_dst_filename)
 
@@ -42,8 +47,16 @@ class TestNbConvertExporters(TestsBase):
         self.nbconvert('--to {} "{}"'.format(exporter_name, nb_src_filename))
         statinfo_e = os.stat(nb_dst_filename)
         assert os.path.isfile(nb_dst_filename)
+        with io.open(nb_dst_filename, 'r', encoding='utf-8') as f:
+            txt_pst = f.read()
 
-        assert statinfo_e.st_size > statinfo.st_size
+        if exporter_name == 'html_embed':
+            logging.getLogger('lxml').info(
+                'embedded differences:\n' +
+                '\n'.join(difflib.unified_diff(
+                    txt_pre.splitlines(), txt_pst.splitlines(),
+                    fromfile='regular', tofile='embedded')))
+        nt.assert_greater(statinfo_e.st_size, statinfo.st_size)
 
         with io.open(nb_dst_filename, 'r', encoding='utf-8') as f:
             embedded_nb = f.read()
