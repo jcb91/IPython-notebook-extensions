@@ -75,8 +75,8 @@ define([
             config.load();
             config.loaded.then(function(){
                 if(Jupyter.notebook.metadata.hide_cellprompt == undefined){
-                    Jupyter.notebook.metadata.hide_cellprompt = false;
-                    Jupyter.notebook.metadata.hide_cellprompt = (config.data.hide_input.hide_cellprompt || false);
+                    var hide_cellprompt = config.data.hide_input.hide_cellprompt;
+                    Jupyter.notebook.metadata.hide_cellprompt = hide_cellprompt !== undefined ? hide_cellprompt : true;
                 }
                 $("#view_menu > li#toggle_celltoolbar > a > i").toggleClass('fa-eye', !Jupyter.notebook.metadata.hide_cellprompt);
                 $("#view_menu > li#toggle_celltoolbar > a > i").toggleClass('fa-eye-slash', Jupyter.notebook.metadata.hide_cellprompt);
