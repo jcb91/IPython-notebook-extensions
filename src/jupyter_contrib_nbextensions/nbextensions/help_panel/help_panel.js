@@ -2,11 +2,11 @@
 
 define([
     'require',
-    'jqueryui',
+    'jquery-ui',
     'base/js/namespace',
     'base/js/events',
 ], function (
-    require,
+    requirejs,
     $,
     IPython,
     events
@@ -18,23 +18,14 @@ define([
      * The require call may fail, since the plugin doesn't seem to be included
      * in all Jupyter versions. In this case, we fallback to using jqueryui tooltips.
      */
-    var have_bs_tooltips = false;
-    require(
-        ['components/bootstrap/js/tooltip'],
-        // we don't actually need to do anything with the return
-        // just ensure that the plugin gets loaded.
-        function () { have_bs_tooltips = true; },
-        // The errback, error callback
-        // The error has a list of modules that failed
-        function (err) {
-            var failedId = err.requireModules && err.requireModules[0];
-            if (failedId === 'components/bootstrap/js/tooltip') {
-                // could do something here, like load a cdn version.
-                // For now, just ignore it.
-                have_bs_tooltips = false;
-            }
-        }
-    );
+    requirejs(['components/bootstrap/js/tooltip'], function () {
+        // others may be relying on jqueryui tooltip, so
+        // give $().bootstrapTooltip the Bootstrap functionality, while
+        // returning $.fn.tooltip to its previously assigned value
+        $.fn.bootstrapTooltip = $.fn.tooltip.noConflict ? $.fn.tooltip.noConflict() : $.fn.tooltip;
+    }, function (err) {
+        // do nothing on fail, we just fallback to jquery-ui's $.tooltip
+    });
 
     // define default values for config parameters
     var params = {
@@ -58,7 +49,7 @@ define([
                     help   : 'Show help panel',
                     icon   : 'fa-book',
                     handler: function() {
-                        var visible = toggleHelpPanel();
+                        toggleHelpPanel();
                         var btn = $(this);
                         setTimeout(function() { btn.blur(); }, 500);
                     }
@@ -79,7 +70,7 @@ define([
         if (min_rel_width === undefined) min_rel_width = 0;
         if (max_rel_width === undefined) max_rel_width = 100;
 
-        side_panel.css('display','none');
+        side_panel.css('display', 'none');
         side_panel.insertAfter(main_panel);
 
         var side_panel_splitbar = $('<div class="side_panel_splitbar"/>');
@@ -92,8 +83,6 @@ define([
         side_panel_expand_contract.attr({
             title: 'expand/contract panel',
             'data-toggle': 'tooltip'
-        }).tooltip({
-            placement: 'right'
         }).click(function () {
             var open = $(this).hasClass('fa-expand');
             var site = $('#site');
@@ -119,14 +108,32 @@ define([
                 side_panel_splitbar.show();
             }
 
-            if (have_bs_tooltips) {
-                side_panel_expand_contract.attr('title', tooltip_text);
-                side_panel_expand_contract.tooltip('hide').tooltip('fixTitle');
+            side_panel_expand_contract.attr('title', tooltip_text);
+            if (side_panel_expand_contract.bootstrapTooltip) {
+                side_panel_expand_contract
+                    .bootstrapTooltip('hide')
+                    .bootstrapTooltip('fixTitle');
             }
             else {
-                side_panel_expand_contract.tooltip('option', 'content', tooltip_text);
+                side_panel_expand_contract
+                    .tooltip('option', 'content', tooltip_text);
             }
         });
+
+        if (side_panel_expand_contract.bootstrapTooltip) {
+            side_panel_expand_contract.bootstrapTooltip({
+                placement: 'right'
+            });
+        }
+        else {
+            side_panel_expand_contract.tooltip({
+                position: {
+                    my: 'left+4',
+                    at: 'right',
+                    collision: 'flip',
+                }
+            });
+        }
 
         // bind events for resizing side panel
         side_panel_splitbar.mousedown(function (md_evt) {
@@ -235,8 +242,8 @@ define([
         $('head').append(
             $('<link/>', {
                 rel: 'stylesheet',
-                type:'text/css',
-                href: require.toUrl('./help_panel.css')
+                type: 'text/css',
+                href: requirejs.toUrl('./help_panel.css')
             })
         );
         return IPython.notebook.config.loaded.then(initialize);
